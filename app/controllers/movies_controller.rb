@@ -7,16 +7,32 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @sort = params[:sort]||session[:sort]
       @all_ratings = Movie.ratings
-      @ratings =  params[:ratings] || session[:ratings] || Hash[@all_ratings.map {|rating| [rating, rating]}]
-      @movies = Movie.where(rating:@ratings.keys).order(@sort)
-      if params[:sort]!=session[:sort] or params[:ratings]!=session[:ratings]
-        session[:sort] = @sort
+      #Get all the possible atings from the database
+      @sort_type = params[:sort]
+      @sort_type=@sort_type || session[:sort]
+      #it decides what is the sorting criteria
+    
+      @ratings =  params[:ratings] 
+      @ratings = @ratings || session[:ratings] 
+      @ratings = @ratings || Hash[@all_ratings.map {|rating| [rating, rating]}]
+      #Checkbox
+      @all_rated_movies=Movie.where(rating:@ratings.keys)
+      @selectedmovies = @all_rated_movies.order(@sort_type)
+      #Order the movies based on sorting type
+      @new_or_previous=params[:sort]!=session[:sort] 
+      @new_or_previous=@new_or_previous or params[:ratings]!=session[:ratings]
+      if @new_or_previous
         session[:ratings] = @ratings
+        session[:sort] = @sort_type
         flash.keep
+        
+        #Keeps the entire flash
         redirect_to movies_path(sort: session[:sort],ratings:session[:ratings])
+        #It redirects to index.html
       end
+      
+      
   end
 
   def new
